@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/passcard_widget"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen"
+    android:initialKeyguardLayout="@layout/passcard_widget"
+    android:description="@string/app_widget_description"
+    android:previewLayout="@layout/example_appwidget_preview_layout"
+    android:previewImage="@drawable/passcard_widget_not_inited"
+
+/>
+<!--    -->
+    <!--    -->
+    <!--    android:previewImage="@drawable/example_appwidget_preview"-->
+    <!--    android:minWidth="300dp"-->
+    <!--    android:minHeight="200dp"-->
+<!--    86400000-->
