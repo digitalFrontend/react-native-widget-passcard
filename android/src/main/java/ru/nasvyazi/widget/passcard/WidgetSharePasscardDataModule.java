@@ -154,7 +154,7 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
       BackgroundServiceRunner.StartService(getReactApplicationContext());
       promise.resolve(null);
     } catch (Exception e) {
-      promise.resolve(e);
+      promise.reject(e);
     }
   }
 

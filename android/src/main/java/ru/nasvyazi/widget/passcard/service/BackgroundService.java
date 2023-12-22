@@ -1,6 +1,9 @@
 package ru.nasvyazi.widget.passcard.service;
 
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
@@ -8,7 +11,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -17,6 +22,8 @@ import android.os.Message;
 import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.app.NotificationCompat;
 
 import ru.nasvyazi.widget.passcard.constants.WIDGET_HIGHLIGHTS;
 import ru.nasvyazi.widget.passcard.interfaces.IAdvertiseStateChangeCallback;
@@ -56,6 +63,23 @@ public class BackgroundService extends Service {
             serverParams.CCC_DESCRIPTOR_UUID = sharedPref.getString("CCC_DESCRIPTOR_UUID", null);
             gattServer.start(serverParams);
             testServer.start(mContext);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String CHANNEL_ID = "my_channel_01";
+                NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                        "Channel human readable title",
+                        NotificationManager.IMPORTANCE_DEFAULT);
+
+                ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
+                Notification notification = new NotificationCompat.Builder(mContext, CHANNEL_ID)
+                        .setContentTitle("123")
+                        .setContentText("321").build();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+                } else {
+                    startForeground(1, notification);
+                }
+            }
         }
     }
 
@@ -128,6 +152,7 @@ public class BackgroundService extends Service {
 
         serviceLooperForHighlight = threadForHighlight.getLooper();
         serviceHandlerForHighlight = new ServiceHandlerForHighlight(serviceLooperForHighlight, this);
+
     }
 
     @Override

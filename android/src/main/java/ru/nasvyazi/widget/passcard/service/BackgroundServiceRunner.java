@@ -3,6 +3,7 @@ package ru.nasvyazi.widget.passcard.service;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 public class BackgroundServiceRunner {
@@ -21,7 +22,11 @@ public class BackgroundServiceRunner {
         if (isMyServiceRunning(context,BackgroundService.class)){
             throw new Exception("Already running");
         } else {
-            context.startService(new Intent(context, BackgroundService.class));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(new Intent(context, BackgroundService.class));
+            } else {
+                context.startService(new Intent(context, BackgroundService.class));
+            }
         }
     }
 
