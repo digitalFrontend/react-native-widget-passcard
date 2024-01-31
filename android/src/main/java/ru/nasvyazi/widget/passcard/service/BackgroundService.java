@@ -32,6 +32,7 @@ import ru.nasvyazi.widget.passcard.server.GattServer;
 import ru.nasvyazi.widget.passcard.server.entity.GattServerParams;
 import ru.nasvyazi.widget.passcard.tools.Test;
 import ru.nasvyazi.widget.passcard.widget.PasscardWidget;
+import ru.nasvyazi.widget.passcard.logger.LogsSender;
 
 public class BackgroundService extends Service {
     private Looper serviceLooper;
@@ -41,7 +42,7 @@ public class BackgroundService extends Service {
 
     private GattServer gattServer;
     private Test testServer;
-
+//    private LogsSender logsSender = null;
     private final class ServiceHandler extends Handler {
 
         private Context mContext;
@@ -86,13 +87,16 @@ public class BackgroundService extends Service {
     private final class ServiceHandlerForHighlight extends Handler {
 
         private Context mContext;
+        private LogsSender logsSender = null;
         public ServiceHandlerForHighlight(Looper looper, Context context) {
             super(looper);
             mContext = context;
+            logsSender = new LogsSender(context);
         }
         @Override
         public void handleMessage(Message msg) {
             try {
+                logsSender.appendLog("TRY - handleMessage start");
                 SharedPreferences sharedPref = mContext.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putInt("widgetHighlight", msg.arg1);
@@ -105,7 +109,9 @@ public class BackgroundService extends Service {
                         .getAppWidgetIds(new ComponentName(mContext, PasscardWidget.class));
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
                 mContext.sendBroadcast(intent);
+                logsSender.appendLog("TRY - handleMessage before 2s");
                 Thread.sleep(2000);
+                logsSender.appendLog("TRY - handleMessage after 2s");
                 sharedPref = mContext.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
                 editor = sharedPref.edit();
                 editor.putInt("widgetHighlight", WIDGET_HIGHLIGHTS.NOTHING);
@@ -118,19 +124,22 @@ public class BackgroundService extends Service {
                         .getAppWidgetIds(new ComponentName(mContext, PasscardWidget.class));
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
                 mContext.sendBroadcast(intent);
+                logsSender.appendLog("TRY - handleMessage end");
             } catch (InterruptedException e) {
                 // Restore interrupt status.
+                logsSender.appendLog("CATCH - handleMessage");
                 Thread.currentThread().interrupt();
             }
         }
     }
+
 
     @Override
     public void onCreate() {
         HandlerThread thread = new HandlerThread("ServiceStartArguments",
                 Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
-
+//        logsSender = new LogsSender(this);
         gattServer = new GattServer(this, new IAdvertiseStateChangeCallback() {
             @Override
             public void callback(int state) {

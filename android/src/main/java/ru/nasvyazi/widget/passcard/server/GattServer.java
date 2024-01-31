@@ -141,7 +141,7 @@ public class GattServer {
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                logsSender.appendLog("Central did connect");
+                logsSender.appendLog("Central did connect"+" USER_UUID = " + mParams.USER_UUID);
             } else {
                 subscribedDevices.remove(device);
                 logsSender.appendLog("Central did disconnect");
@@ -156,16 +156,19 @@ public class GattServer {
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
             String log = "onCharacteristicRead offset="+offset;
+
             if (characteristic.getUuid().equals(UUID.fromString(mParams.CHAR_FOR_READ_UUID))) {
                 String strValue = mParams.USER_UUID;
+                sendGattServerResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, strValue.getBytes(Charsets.UTF_8));
                 if (onHighlight != null){
+                    logsSender.appendLog("WIDGET_HIGHLIGHTS.SUCCESS - " + mParams.USER_UUID);
                     onHighlight.callback(WIDGET_HIGHLIGHTS.SUCCESS);
                 }
-                sendGattServerResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, strValue.getBytes(Charsets.UTF_8));
                 log += "\nresponse=success, value=\""+strValue+"\"";
                 logsSender.appendLog(log);
             } else {
                 if (onHighlight != null){
+                    logsSender.appendLog("WIDGET_HIGHLIGHTS.FAIL - " + mParams.USER_UUID);
                     onHighlight.callback(WIDGET_HIGHLIGHTS.FAIL);
                 }
                 sendGattServerResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, null);
@@ -299,6 +302,7 @@ public class GattServer {
         @Override
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
             logsSender.appendLog("Advertise start success\n"+mParams.SERVICE_UUID);
+            logsSender.appendLog("For USER - " + mParams.USER_UUID);
         }
 
         @Override

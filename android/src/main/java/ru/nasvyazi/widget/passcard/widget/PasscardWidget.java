@@ -177,7 +177,7 @@ public class PasscardWidget extends AppWidgetProvider {
             result.drawableId = R.drawable.passcard_widget_not_inited;
             result.action = WIDGET_ACTIONS.NOTHING;
         } else {
-            int hightlight = sharedPref.getInt("widget_highlight", WIDGET_HIGHLIGHTS.NOTHING);
+            int hightlight = sharedPref.getInt("widgetHighlight", WIDGET_HIGHLIGHTS.NOTHING);
             if (hightlight == WIDGET_HIGHLIGHTS.NOTHING){
                 switch (state){
                     case WIDGET_STATES.NOT_INITIALIZED:{
