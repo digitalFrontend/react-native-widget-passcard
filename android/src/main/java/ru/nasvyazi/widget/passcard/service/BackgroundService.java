@@ -96,7 +96,6 @@ public class BackgroundService extends Service {
         @Override
         public void handleMessage(Message msg) {
             try {
-                logsSender.appendLog("TRY - handleMessage start");
                 SharedPreferences sharedPref = mContext.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putInt("widgetHighlight", msg.arg1);
@@ -109,9 +108,7 @@ public class BackgroundService extends Service {
                         .getAppWidgetIds(new ComponentName(mContext, PasscardWidget.class));
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
                 mContext.sendBroadcast(intent);
-                logsSender.appendLog("TRY - handleMessage before 2s");
                 Thread.sleep(2000);
-                logsSender.appendLog("TRY - handleMessage after 2s");
                 sharedPref = mContext.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
                 editor = sharedPref.edit();
                 editor.putInt("widgetHighlight", WIDGET_HIGHLIGHTS.NOTHING);
@@ -124,7 +121,6 @@ public class BackgroundService extends Service {
                         .getAppWidgetIds(new ComponentName(mContext, PasscardWidget.class));
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
                 mContext.sendBroadcast(intent);
-                logsSender.appendLog("TRY - handleMessage end");
             } catch (InterruptedException e) {
                 // Restore interrupt status.
                 logsSender.appendLog("CATCH - handleMessage");
