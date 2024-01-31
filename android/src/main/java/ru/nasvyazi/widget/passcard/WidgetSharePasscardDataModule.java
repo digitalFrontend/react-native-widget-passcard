@@ -71,7 +71,6 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
 
   private final ReactApplicationContext reactContext;
   private final String sharedPreferencesName = "PASSCARD_storage";
-
   private Helper mHelper;
   private LogsBroadcastReceiver logsReceiver;
 
@@ -201,8 +200,8 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
     if (!sharedPreferences.getBoolean("isInited", false)){
       editor.putBoolean("isInited", true);
       editor.putInt("widgetState", WIDGET_STATES.WAITING_START);
-      editor.putInt("widget_highlight", WIDGET_HIGHLIGHTS.NOTHING);
-      editor.putString("USER_UUID", "4F0001001310BC01");
+      editor.putInt("widgetHighlight", WIDGET_HIGHLIGHTS.NOTHING);
+      editor.putString("USER_UUID", "");
       editor.putString("SERVICE_UUID", "25AE1441-05D3-4C5B-8281-93D4E07420CF");
       editor.putString("CHAR_FOR_READ_UUID", "25AE1442-05D3-4C5B-8281-93D4E07420CF");
       editor.putString("CHAR_FOR_WRITE_UUID", "25AE1443-05D3-4C5B-8281-93D4E07420CF");

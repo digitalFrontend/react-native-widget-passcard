@@ -32,6 +32,7 @@ import ru.nasvyazi.widget.passcard.server.GattServer;
 import ru.nasvyazi.widget.passcard.server.entity.GattServerParams;
 import ru.nasvyazi.widget.passcard.tools.Test;
 import ru.nasvyazi.widget.passcard.widget.PasscardWidget;
+import ru.nasvyazi.widget.passcard.logger.LogsSender;
 
 public class BackgroundService extends Service {
     private Looper serviceLooper;
@@ -41,7 +42,7 @@ public class BackgroundService extends Service {
 
     private GattServer gattServer;
     private Test testServer;
-
+//    private LogsSender logsSender = null;
     private final class ServiceHandler extends Handler {
 
         private Context mContext;
@@ -86,9 +87,11 @@ public class BackgroundService extends Service {
     private final class ServiceHandlerForHighlight extends Handler {
 
         private Context mContext;
+        private LogsSender logsSender = null;
         public ServiceHandlerForHighlight(Looper looper, Context context) {
             super(looper);
             mContext = context;
+            logsSender = new LogsSender(context);
         }
         @Override
         public void handleMessage(Message msg) {
@@ -120,17 +123,19 @@ public class BackgroundService extends Service {
                 mContext.sendBroadcast(intent);
             } catch (InterruptedException e) {
                 // Restore interrupt status.
+                logsSender.appendLog("CATCH - handleMessage");
                 Thread.currentThread().interrupt();
             }
         }
     }
+
 
     @Override
     public void onCreate() {
         HandlerThread thread = new HandlerThread("ServiceStartArguments",
                 Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
-
+//        logsSender = new LogsSender(this);
         gattServer = new GattServer(this, new IAdvertiseStateChangeCallback() {
             @Override
             public void callback(int state) {

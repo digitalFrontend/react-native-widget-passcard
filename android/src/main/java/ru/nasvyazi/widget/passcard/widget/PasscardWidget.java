@@ -30,6 +30,7 @@ import ru.nasvyazi.widget.passcard.constants.AskingUserActions;
 import ru.nasvyazi.widget.passcard.constants.WIDGET_ACTIONS;
 import ru.nasvyazi.widget.passcard.constants.WIDGET_HIGHLIGHTS;
 import ru.nasvyazi.widget.passcard.constants.WIDGET_STATES;
+import ru.nasvyazi.widget.passcard.logger.LogsSender;
 import ru.nasvyazi.widget.passcard.service.BackgroundService;
 import ru.nasvyazi.widget.passcard.service.BackgroundServiceRunner;
 import ru.nasvyazi.widget.passcard.tools.helper.Helper;
@@ -165,63 +166,67 @@ public class PasscardWidget extends AppWidgetProvider {
         }
     }
 
-    WidgetStateData getWidgetStateData(Context context){
-
-        SharedPreferences sharedPref = context.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
-        int state = sharedPref.getInt("widgetState", WIDGET_STATES.NOT_INITIALIZED);
-        boolean isInited = sharedPref.getBoolean("isInited", false);
-
+    WidgetStateData getWidgetStateData(Context context) {
         WidgetStateData result = new WidgetStateData();
+        try {
+            SharedPreferences sharedPref = context.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
+            int state = sharedPref.getInt("widgetState", WIDGET_STATES.NOT_INITIALIZED);
+            boolean isInited = sharedPref.getBoolean("isInited", false);
 
-        if (!isInited){
-            result.drawableId = R.drawable.passcard_widget_not_inited;
-            result.action = WIDGET_ACTIONS.NOTHING;
-        } else {
-            int hightlight = sharedPref.getInt("widget_highlight", WIDGET_HIGHLIGHTS.NOTHING);
-            if (hightlight == WIDGET_HIGHLIGHTS.NOTHING){
-                switch (state){
-                    case WIDGET_STATES.NOT_INITIALIZED:{
-                        result.drawableId = R.drawable.passcard_widget_not_inited;
-                        result.action = WIDGET_ACTIONS.NOTHING;
-                        break;
-                    }
-                    case WIDGET_STATES.WAITING_START:{
-                        result.drawableId = R.drawable.passcard_widget_inactive;
-                        result.action = WIDGET_ACTIONS.TOGGLE_SERVICE;
-                        break;
-                    }
-                    case WIDGET_STATES.RUNNING:{
-                        result.drawableId = R.drawable.passcard_widget_active;
-                        result.action = WIDGET_ACTIONS.TOGGLE_SERVICE;
-                        break;
-                    }
-                    case WIDGET_STATES.REQUIRED_ENABLE_BLUETOOTH:{
-                        result.drawableId = R.drawable.passcard_widget_bluetooth;
-                        result.action = WIDGET_ACTIONS.ENABLE_BLUETOOTH;
-                        break;
-                    }
-                    case WIDGET_STATES.REQUIRED_PERMISSION:{
-                        result.drawableId = R.drawable.passcard_widget_permission;
-                        result.action = WIDGET_ACTIONS.TOGGLE_SERVICE;
-                        break;
-                    }
-                }
-            } else {
+            if (!isInited) {
+                result.drawableId = R.drawable.passcard_widget_not_inited;
                 result.action = WIDGET_ACTIONS.NOTHING;
-                switch(hightlight){
-                    case WIDGET_HIGHLIGHTS.SUCCESS:{
-                        result.drawableId = R.drawable.passcard_widget_success;
-                        break;
+            } else {
+                int hightlight = sharedPref.getInt("widgetHighlight", WIDGET_HIGHLIGHTS.NOTHING);
+                if (hightlight == WIDGET_HIGHLIGHTS.NOTHING) {
+                    switch (state) {
+                        case WIDGET_STATES.NOT_INITIALIZED: {
+                            result.drawableId = R.drawable.passcard_widget_not_inited;
+                            result.action = WIDGET_ACTIONS.NOTHING;
+                            break;
+                        }
+                        case WIDGET_STATES.WAITING_START: {
+                            result.drawableId = R.drawable.passcard_widget_inactive;
+                            result.action = WIDGET_ACTIONS.TOGGLE_SERVICE;
+                            break;
+                        }
+                        case WIDGET_STATES.RUNNING: {
+                            result.drawableId = R.drawable.passcard_widget_active;
+                            result.action = WIDGET_ACTIONS.TOGGLE_SERVICE;
+                            break;
+                        }
+                        case WIDGET_STATES.REQUIRED_ENABLE_BLUETOOTH: {
+
+                            result.drawableId = R.drawable.passcard_widget_bluetooth;
+                            result.action = WIDGET_ACTIONS.ENABLE_BLUETOOTH;
+                            break;
+                        }
+                        case WIDGET_STATES.REQUIRED_PERMISSION: {
+                            result.drawableId = R.drawable.passcard_widget_permission;
+                            result.action = WIDGET_ACTIONS.TOGGLE_SERVICE;
+                            break;
+                        }
                     }
-                    case WIDGET_HIGHLIGHTS.FAIL:{
-                        result.drawableId = R.drawable.passcard_widget_unsuccess;
-                        break;
+                } else {
+                    result.action = WIDGET_ACTIONS.NOTHING;
+                    switch (hightlight) {
+                        case WIDGET_HIGHLIGHTS.SUCCESS: {
+                            result.drawableId = R.drawable.passcard_widget_success;
+                            break;
+                        }
+                        case WIDGET_HIGHLIGHTS.FAIL: {
+                            result.drawableId = R.drawable.passcard_widget_unsuccess;
+                            break;
+                        }
                     }
                 }
             }
+
+        } catch (Exception err) {
+        } finally {
+            return result;
         }
 
-        return result;
     }
 
     PendingIntent getEnableBluetoothPendingIntent(Context context){
@@ -242,7 +247,6 @@ public class PasscardWidget extends AppWidgetProvider {
 
         try {
             RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.passcard_widget);
-
             WidgetStateData stateData = getWidgetStateData(context);
 
             rv.setImageViewResource(R.id.toggle_button, stateData.drawableId);

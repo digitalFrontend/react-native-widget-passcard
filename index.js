@@ -67,7 +67,7 @@ PasscardWidget.addListener = callback => {
     let eventListener = eventEmitter.addListener('LOGS_RECEIVER', event => {
         callback(event)
     });
-    return eventEmitter;
+    return eventListener; //eventEmitter
 }
 
 export default PasscardWidget;
