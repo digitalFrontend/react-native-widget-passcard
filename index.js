@@ -11,12 +11,13 @@ let PasscardWidget = {
     getWidgetState: async () => ({}),
     start: async () => {},
     stop: async () => {},
-    addListener: (callback) => {}
+    addListener: (callback) => {},
+    sendCustomEvent: async () => {}
 };
 
 PasscardWidget.setParams = async (params) => {
     if (Platform.OS == "ios") {
-        return;
+        return await Widget.setParams(params);
     } else {
         return await Widget.setParams(params);
     }
@@ -24,7 +25,7 @@ PasscardWidget.setParams = async (params) => {
 
 PasscardWidget.init = async () => {
     if (Platform.OS == "ios") {
-        return;
+        return await Widget.initData();
     } else {
         return await Widget.init();
     }
@@ -32,7 +33,7 @@ PasscardWidget.init = async () => {
 
 PasscardWidget.getParams = async () => {
     if (Platform.OS == "ios") {
-        return;
+        return await Widget.getParams();
     } else {
         return await Widget.getParams();
     }
@@ -48,7 +49,7 @@ PasscardWidget.getWidgetState = async () => {
 
 PasscardWidget.start = async () => {
     if (Platform.OS == "ios") {
-        return null
+        return await Widget.start()
     } else {
         return await Widget.start()
     }
@@ -56,18 +57,32 @@ PasscardWidget.start = async () => {
 
 PasscardWidget.stop = async () => {
     if (Platform.OS == "ios") {
-        return null
+        return await Widget.stop()
     } else {
         return await Widget.stop()
     }
 };
 
 PasscardWidget.addListener = callback => {
-    const eventEmitter = new NativeEventEmitter(NativeModules.WidgetSharePasscardData);
+
+    let eventEmitter 
+    if (Platform.OS == 'ios') {
+        eventEmitter = new NativeEventEmitter(NativeModules.WidgetPasscardEventEmitter);
+    } else {
+        eventEmitter = new NativeEventEmitter(NativeModules.WidgetSharePasscardData);
+    }
     let eventListener = eventEmitter.addListener('LOGS_RECEIVER', event => {
+        console.log('LOGS_RECEIVER - ', event);
         callback(event)
     });
     return eventListener; //eventEmitter
 }
 
+
+PasscardWidget.sendCustomEvent = () => {
+    if(Platform.OS == 'ios'){
+        console.log('send EV');
+        return Widget.sendCustomEvent()
+    }
+}
 export default PasscardWidget;
