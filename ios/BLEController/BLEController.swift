@@ -1,5 +1,6 @@
 
 import CoreBluetooth
+import WidgetKit
 
 
 public class BLEController: NSObject {
@@ -13,7 +14,7 @@ public class BLEController: NSObject {
     var blePeripheral: CBPeripheralManager!
     var charForIndicate: CBMutableCharacteristic?
     var subscribedCentrals = [CBCentral]()
-
+    var counter: Int = 0
     // UI related properties
 //    weak var textViewStatus: UITextView!
 //    weak var textViewLog: UITextView!
@@ -27,21 +28,31 @@ public class BLEController: NSObject {
 
     public override init() {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
-        self.uuidService = CBUUID(string:defaults?.string(forKey: "SERVICE_UUID") ?? "")
-        self.uuidCharForRead = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_READ_UUID") ?? "")
-        self.uuidCharForWrite = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_WRITE_UUID") ?? "")
-        self.uuidCharForIndicate = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_INDICATE_UUID") ?? "")
+        self.uuidService = CBUUID(string:defaults?.string(forKey: "SERVICE_UUID") ?? "25AE1441-05D3-4C5B-8281-93D4E07420CF")
+        self.uuidCharForRead = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_READ_UUID") ?? "25AE1442-05D3-4C5B-8281-93D4E07420CF")
+        self.uuidCharForWrite = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_WRITE_UUID") ?? "25AE1443-05D3-4C5B-8281-93D4E07420CF")
+        self.uuidCharForIndicate = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_INDICATE_UUID") ?? "25AE1444-05D3-4C5B-8281-93D4E07420CF")
         self.textFieldDataForRead = defaults?.string(forKey: "USER_UUID") ?? "EMPTY_ID"
     }
+    
     public func createBLE() {
+        
+        let defaults = UserDefaults(suiteName: DATA_GROUP)
+        uuidService = CBUUID(string:defaults?.string(forKey: "SERVICE_UUID") ?? "25AE1441-05D3-4C5B-8281-93D4E07420CF")
+        uuidCharForRead = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_READ_UUID") ?? "25AE1442-05D3-4C5B-8281-93D4E07420CF")
+        uuidCharForWrite = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_WRITE_UUID") ?? "25AE1443-05D3-4C5B-8281-93D4E07420CF")
+        uuidCharForIndicate = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_INDICATE_UUID") ?? "25AE1444-05D3-4C5B-8281-93D4E07420CF")
+        textFieldDataForRead = defaults?.string(forKey: "USER_UUID") ?? "EMPTY_ID"
+        
         initBLE()
     }
     public func start() {
+        counter = counter + 1
+        print("counter ----> \(counter)")
         bleStartAdvertising("")
     }
     public func stop() {
         bleStopAdvertising()
-        
     }
 }
 
@@ -52,7 +63,7 @@ extension BLEController {
         print("--------- initBLE ")
         // using DispatchQueue.main means we can update UI directly from delegate methods
         blePeripheral = CBPeripheralManager(delegate: self, queue: DispatchQueue.main)
-
+        print("--------- initBLE --- \(String(describing: blePeripheral))")
         // BLE service must be created AFTER CBPeripheralManager receives .poweredOn state
         // see peripheralManagerDidUpdateState
     }
@@ -81,6 +92,10 @@ extension BLEController {
     }
 
     private func bleStartAdvertising(_ advertisementData: String) {
+        if(blePeripheral == nil){
+            createBLE()
+        }
+//        
         let dictionary: [String: Any] = [CBAdvertisementDataServiceUUIDsKey: [uuidService],
                                          CBAdvertisementDataLocalNameKey: advertisementData]
         logsSender.appendLog("startAdvertising")
@@ -89,7 +104,7 @@ extension BLEController {
 
     private func bleStopAdvertising() {
         logsSender.appendLog("stopAdvertising")
-        blePeripheral.stopAdvertising()
+        blePeripheral?.stopAdvertising()
     }
 
     private func bleSendIndication(_ valueString: String) {
@@ -117,17 +132,54 @@ extension BLEController {
             return blePeripheral.state.stringValue
         }
     }
+    
+    private func toggleHighlight(highlight: WidgetHighlight) {
+        if #available(iOS 14.0, *) {
+            let backgroundQueue = DispatchQueue(label: "ru.nasvyazi", qos: .background)
+            backgroundQueue.async {
+                let defaults = UserDefaults(suiteName: DATA_GROUP)
+                defaults?.set(highlight.rawValue, forKey: "widgetHighlight")
+                WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+                sleep(2)
+                defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
+                WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+                
+            }
+        }
+    }
 }
 
 // MARK: - CBPeripheralManagerDelegate
 extension BLEController: CBPeripheralManagerDelegate {
     public func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+        print("didUpdate")
         logsSender.appendLog("didUpdateState: \(peripheral.state.stringValue)")
-
+        print("didUpdate 2")
+        let defaults = UserDefaults(suiteName: DATA_GROUP)
+        
+        if peripheral.state == .unauthorized || peripheral.state == .unsupported {
+            print("REQUIRED_PERMISSION didUpdate")
+            defaults?.set(WidgetStates.REQUIRED_PERMISSION.rawValue, forKey: "widgetState")
+        }
+        
+        if peripheral.state == .poweredOff {
+            print("REQUIRED_ENABLE_BLUETOOTH didUpdate")
+            defaults?.set(WidgetStates.REQUIRED_ENABLE_BLUETOOTH.rawValue, forKey: "widgetState")
+        }
+        
+        defaults?.synchronize()
+        
         if peripheral.state == .poweredOn {
             logsSender.appendLog("adding BLE service")
             blePeripheral.add(buildBLEService())
+            defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
         }
+        
+        if #available(iOS 14.0, *) {
+            print("reload didUpdate")
+            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+        }
+        
     }
 
     public func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
@@ -193,9 +245,11 @@ extension BLEController: CBPeripheralManagerDelegate {
                 textFieldDataForWrite = textValue
                 log += "\nresponding with success, value = '\(textValue)'"
                 blePeripheral.respond(to: request, withResult: .success)
+                toggleHighlight(highlight: WidgetHighlight.SUCCESS)
             default:
                 log += "\nresponding with attributeNotFound"
                 blePeripheral.respond(to: request, withResult: .attributeNotFound)
+                toggleHighlight(highlight: WidgetHighlight.FAIL)
             }
         }
         logsSender.appendLog(log)

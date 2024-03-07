@@ -1,18 +1,22 @@
 import Foundation
+import WidgetKit
 import React
 
 @objc(WidgetSharePasscardData)
 class WidgetSharePasscardData: NSObject {
     
-    var BLEC: BLEController? = nil
-    let logsSender: LogsSender = LogsSender()
+    var BLE: BLEController? = nil
     
+    
+    let logsSender: LogsSender = LogsSender()
+//    let BGService: BackgroundService = getBGServiceInstance()
     @objc
     func sendCustomEvent(
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
-        logsSender.appendLog("CustomEvent")
+        self.BLE = BLEController()
+        self.BLE?.createBLE()
     }
     
     @objc
@@ -20,7 +24,12 @@ class WidgetSharePasscardData: NSObject {
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
-        BGService.start()
+        let defaults = UserDefaults(suiteName: DATA_GROUP)
+        defaults?.set(WidgetActions.LET_START.rawValue, forKey: "widgetActions")
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+        }
+//        BackgroundService.shared.start()
         resolve(nil)
     }
     
@@ -29,7 +38,12 @@ class WidgetSharePasscardData: NSObject {
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
-        BGService.stop()
+        let defaults = UserDefaults(suiteName: DATA_GROUP)
+        defaults?.set(WidgetActions.LET_STOP.rawValue, forKey: "widgetActions")
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+        }
+//        BackgroundService.shared.stop()
         resolve(nil)
     }
     
@@ -53,14 +67,18 @@ class WidgetSharePasscardData: NSObject {
 
         if !(defaults?.bool(forKey: "isInited") ?? false) {
             print("--------- setParams true")
-                defaults?.set(true, forKey: "isInited")
-                defaults?.set(WAITING_START, forKey: "widgetState")
+            defaults?.set(true, forKey: "isInited")
+            defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
+            defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
         }
+        
+        defaults?.set(WidgetActions.LET_INIT.rawValue, forKey: "widgetActions")
+        
         defaults?.synchronize()
-        
-        self.BLEC = BLEController()
-        self.BLEC?.createBLE()
-        
+
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+        }
         resolve("OK")
 
     }
@@ -89,9 +107,9 @@ class WidgetSharePasscardData: NSObject {
     )-> Void {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
         if !(defaults?.bool(forKey: "isInited") ?? false) {
-            defaults?.set(true, forKey: "isInited")
-            defaults?.set(WAITING_START, forKey: "widgetState")
-            defaults?.set(NOTHING, forKey: "widgetHighlight")
+//            defaults?.set(true, forKey: "isInited")
+//            defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
+            defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
             defaults?.set("", forKey: "USER_UUID") //2D:60029
             defaults?.set("25AE1441-05D3-4C5B-8281-93D4E07420CF", forKey: "SERVICE_UUID")
             defaults?.set("25AE1442-05D3-4C5B-8281-93D4E07420CF", forKey: "CHAR_FOR_READ_UUID")
@@ -101,6 +119,16 @@ class WidgetSharePasscardData: NSObject {
             defaults?.synchronize()
         }
         resolve("OK")
+       
+    }
+    
+    @objc
+    func getWidgetState(
+        _ resolve: @escaping RCTPromiseResolveBlock,
+        withRejecter reject:  @escaping RCTPromiseRejectBlock
+    )-> Void {
+        let defaults = UserDefaults(suiteName: DATA_GROUP)
+        resolve(["widgetState": defaults?.string(forKey: "widgetState")])
     }
 }
 

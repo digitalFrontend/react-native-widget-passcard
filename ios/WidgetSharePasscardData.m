@@ -2,7 +2,6 @@
 
 @interface RCT_EXTERN_MODULE(WidgetSharePasscardData, NSObject)
 
-
 RCT_EXTERN_METHOD(getParams: (RCTPromiseResolveBlock*) resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
@@ -22,7 +21,7 @@ RCT_EXTERN_METHOD(start: (RCTPromiseResolveBlock*) resolve
 RCT_EXTERN_METHOD(stop: (RCTPromiseResolveBlock*) resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-
-
+RCT_EXTERN_METHOD(getWidgetState: (RCTPromiseResolveBlock*) resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 @end

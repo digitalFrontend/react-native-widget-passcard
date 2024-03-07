@@ -14,7 +14,8 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/digitalFrontend/react-native-widget-passcard.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  s.module_name = "WidgetShare"
+  s.resources = 'ios/assets/*.png'
+  s.module_name = "RNWidgetPasscard"
 
   s.dependency "React-Core"
 end
