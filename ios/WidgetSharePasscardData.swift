@@ -5,7 +5,7 @@ import React
 @objc(WidgetSharePasscardData)
 class WidgetSharePasscardData: NSObject {
     
-    var BLE: BLEController? = nil
+    let BGS: BackgroundService = BackgroundService()
     
     
     let logsSender: LogsSender = LogsSender()
@@ -15,8 +15,7 @@ class WidgetSharePasscardData: NSObject {
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
-        self.BLE = BLEController()
-        self.BLE?.createBLE()
+//        self.BGS.initBLE()
     }
     
     @objc
@@ -25,11 +24,13 @@ class WidgetSharePasscardData: NSObject {
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
-        defaults?.set(WidgetActions.LET_START.rawValue, forKey: "widgetActions")
+        self.BGS.start()
+        defaults?.set(WidgetHighlight.ACTIVE_BY_APP.rawValue, forKey: "widgetHighlight")
+        defaults?.synchronize()
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
         }
-//        BackgroundService.shared.start()
+        
         resolve(nil)
     }
     
@@ -39,11 +40,12 @@ class WidgetSharePasscardData: NSObject {
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
-        defaults?.set(WidgetActions.LET_STOP.rawValue, forKey: "widgetActions")
+        self.BGS.stop()
+        defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
+        defaults?.synchronize()
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
         }
-//        BackgroundService.shared.stop()
         resolve(nil)
     }
     
@@ -72,10 +74,12 @@ class WidgetSharePasscardData: NSObject {
             defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
         }
         
-        defaults?.set(WidgetActions.LET_INIT.rawValue, forKey: "widgetActions")
+//        defaults?.set(WidgetActions.LET_INIT.rawValue, forKey: "widgetActions")
         
         defaults?.synchronize()
-
+        
+        self.BGS.initBLE()
+        
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
         }
@@ -129,6 +133,15 @@ class WidgetSharePasscardData: NSObject {
     )-> Void {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
         resolve(["widgetState": defaults?.string(forKey: "widgetState")])
+    }
+    
+    @objc
+    func getWidgetHighlight(
+        _ resolve: @escaping RCTPromiseResolveBlock,
+        withRejecter reject:  @escaping RCTPromiseRejectBlock
+    )-> Void {
+        let defaults = UserDefaults(suiteName: DATA_GROUP)
+        resolve(["widgetHighlight": defaults?.string(forKey: "widgetHighlight")])
     }
 }
 

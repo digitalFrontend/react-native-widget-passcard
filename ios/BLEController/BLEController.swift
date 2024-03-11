@@ -142,10 +142,9 @@ extension BLEController {
                 let defaults = UserDefaults(suiteName: DATA_GROUP)
                 defaults?.set(highlight.rawValue, forKey: "widgetHighlight")
                 WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
-                sleep(2)
+                sleep(1)
                 defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
                 WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
-                
             }
         }
     }
@@ -169,13 +168,15 @@ extension BLEController: CBPeripheralManagerDelegate {
             defaults?.set(WidgetStates.REQUIRED_ENABLE_BLUETOOTH.rawValue, forKey: "widgetState")
         }
         
-        defaults?.synchronize()
-        
         if peripheral.state == .poweredOn {
             logsSender.appendLog("adding BLE service")
             blePeripheral.add(buildBLEService())
-            defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
+            let currState = defaults?.string(forKey: "widgetState")
+            if(currState == WidgetStates.REQUIRED_ENABLE_BLUETOOTH.rawValue || currState == WidgetStates.REQUIRED_PERMISSION.rawValue ){
+                defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
+            }
         }
+        defaults?.synchronize()
         
         if #available(iOS 14.0, *) {
             print("reload didUpdate")

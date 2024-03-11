@@ -24,4 +24,8 @@ RCT_EXTERN_METHOD(stop: (RCTPromiseResolveBlock*) resolve
 RCT_EXTERN_METHOD(getWidgetState: (RCTPromiseResolveBlock*) resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(getWidgetHighlight: (RCTPromiseResolveBlock*) resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
 @end

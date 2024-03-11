@@ -13,7 +13,8 @@ let PasscardWidget = {
     stop: async () => {},
     addListener: (callback) => {},
     sendCustomEvent: async () => {},
-    createBLE: async () => {}
+    createBLE: async () => {},
+    getWidgetHighlight: async () => {},
 };
 
 PasscardWidget.setParams = async (params) => {
@@ -47,6 +48,14 @@ PasscardWidget.getWidgetState = async () => {
         return await Widget.getWidgetState();
     }
 };
+PasscardWidget.getWidgetHighlight = async () => {
+    if (Platform.OS == "ios") {
+        return await Widget.getWidgetHighlight();
+    } else {
+        return 
+    }
+};
+
 
 PasscardWidget.start = async () => {
     if (Platform.OS == "ios") {
