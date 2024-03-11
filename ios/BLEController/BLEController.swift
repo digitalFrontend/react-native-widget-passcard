@@ -37,13 +37,14 @@ public class BLEController: NSObject {
     
     public func createBLE() {
         
+        print("ASD HERE")
         let defaults = UserDefaults(suiteName: DATA_GROUP)
         uuidService = CBUUID(string:defaults?.string(forKey: "SERVICE_UUID") ?? "25AE1441-05D3-4C5B-8281-93D4E07420CF")
         uuidCharForRead = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_READ_UUID") ?? "25AE1442-05D3-4C5B-8281-93D4E07420CF")
         uuidCharForWrite = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_WRITE_UUID") ?? "25AE1443-05D3-4C5B-8281-93D4E07420CF")
         uuidCharForIndicate = CBUUID(string: defaults?.string(forKey: "CHAR_FOR_INDICATE_UUID") ?? "25AE1444-05D3-4C5B-8281-93D4E07420CF")
         textFieldDataForRead = defaults?.string(forKey: "USER_UUID") ?? "EMPTY_ID"
-        
+        print(defaults?.string(forKey: "USER_UUID") ?? "EMPTY_ID");
         initBLE()
     }
     public func start() {
@@ -63,6 +64,7 @@ extension BLEController {
         print("--------- initBLE ")
         // using DispatchQueue.main means we can update UI directly from delegate methods
         blePeripheral = CBPeripheralManager(delegate: self, queue: DispatchQueue.main)
+        
         print("--------- initBLE --- \(String(describing: blePeripheral))")
         // BLE service must be created AFTER CBPeripheralManager receives .poweredOn state
         // see peripheralManagerDidUpdateState

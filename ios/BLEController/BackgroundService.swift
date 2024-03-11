@@ -10,7 +10,7 @@ import OSLog
     var BLEC: BLEController? = nil
 //    public static let shared = BackgroundService()
     
-    override init() {}
+   public override init() {}
     
     public func initBLE() {
         
@@ -21,12 +21,26 @@ import OSLog
     }
     
     public func start() {
+        print("start1")
+        print(self.BLEC != nil ? "YES BLEC" : "NO BLEC")
         
+        if (self.BLEC == nil){
+            self.initBLE()
+        }
+        
+        print("start12")
         self.BLEC?.start()
+        print("start2")
         let defaults = UserDefaults(suiteName: DATA_GROUP)
+        
+            print("start3")
         defaults?.set(WidgetStates.RUNNING.rawValue, forKey: "widgetState")
         if #available(iOS 14.0, *) {
+            
+                print("start4")
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+            
+                print("start5")
         }
     }
 
@@ -46,7 +60,7 @@ import OSLog
     }
 }
 
-public let BGServiceInstace = BackgroundService()
+//public let BGServiceInstace = BackgroundService()
 //
 //public func getBGServiceInstance() -> BackgroundService {
 //    return BGServiceInstace
