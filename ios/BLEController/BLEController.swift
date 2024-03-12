@@ -261,6 +261,10 @@ extension BLEController: CBPeripheralManagerDelegate {
     public func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
         logsSender.appendLog("isReadyToUpdateSubscribers")
     }
+    
+    public func isAdvertising() -> Bool {
+        return blePeripheral.isAdvertising
+    }
 }
 
 // MARK: - Other extensions

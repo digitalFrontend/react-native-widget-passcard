@@ -6,6 +6,7 @@ import React
 class WidgetSharePasscardData: NSObject {
     
     let BGS: BackgroundService = BackgroundService()
+    let ACTUAL_INIT_VERSION = 2
     
     
     let logsSender: LogsSender = LogsSender()
@@ -62,14 +63,15 @@ class WidgetSharePasscardData: NSObject {
             defaults?.set(params["CHAR_FOR_READ_UUID"] as? String, forKey: "CHAR_FOR_READ_UUID")
             defaults?.set(params["CHAR_FOR_WRITE_UUID"] as? String, forKey: "CHAR_FOR_WRITE_UUID")
             defaults?.set(params["CHAR_FOR_INDICATE_UUID"] as? String, forKey: "CHAR_FOR_INDICATE_UUID")
+            defaults?.set(params["WORK_TIME"] as? Int, forKey: "WORK_TIME")
         
 //          CCC_DESCRIPTOR_UUID - в ios примере не использовался по какойто причине
 //          Но дверь открылась и без него
             defaults?.set(params["CCC_DESCRIPTOR_UUID"] as? String, forKey: "CCC_DESCRIPTOR_UUID")
 
-        if !(defaults?.bool(forKey: "isInited") ?? false) {
+        if ((defaults?.integer(forKey: "initVersion") ?? 0)<ACTUAL_INIT_VERSION) {
             print("--------- setParams true")
-            defaults?.set(true, forKey: "isInited")
+            defaults?.set(ACTUAL_INIT_VERSION, forKey: "initVersion")
             defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
             defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
         }
@@ -101,6 +103,7 @@ class WidgetSharePasscardData: NSObject {
         params["CHAR_FOR_WRITE_UUID"] = defaults?.string(forKey: "CHAR_FOR_WRITE_UUID") ?? ""
         params["CHAR_FOR_INDICATE_UUID"] = defaults?.string(forKey: "CHAR_FOR_INDICATE_UUID") ?? ""
         params["CCC_DESCRIPTOR_UUID"] = defaults?.string(forKey: "CCC_DESCRIPTOR_UUID") ?? ""
+        params["WORK_TIME"] = defaults?.integer(forKey: "WORK_TIME") ?? 0
 
         resolve(params as NSDictionary)
     }
@@ -110,18 +113,24 @@ class WidgetSharePasscardData: NSObject {
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     )-> Void {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
-        if !(defaults?.bool(forKey: "isInited") ?? false) {
-//            defaults?.set(true, forKey: "isInited")
-//            defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
+        if ((defaults?.integer(forKey: "initVersion") ?? 0) < ACTUAL_INIT_VERSION) {
+            defaults?.set(ACTUAL_INIT_VERSION, forKey: "initVersion")
+            defaults?.set(WidgetStates.WAITING_START.rawValue, forKey: "widgetState")
             defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
-            defaults?.set("", forKey: "USER_UUID") //2D:60029
+            defaults?.set((defaults?.bool(forKey: "isInited") ?? false) ? (defaults?.string(forKey: "USER_UUID") ?? "") : "", forKey: "USER_UUID") //2D:60029
             defaults?.set("25AE1441-05D3-4C5B-8281-93D4E07420CF", forKey: "SERVICE_UUID")
             defaults?.set("25AE1442-05D3-4C5B-8281-93D4E07420CF", forKey: "CHAR_FOR_READ_UUID")
             defaults?.set("25AE1443-05D3-4C5B-8281-93D4E07420CF", forKey: "CHAR_FOR_WRITE_UUID")
             defaults?.set("25AE1444-05D3-4C5B-8281-93D4E07420CF", forKey: "CHAR_FOR_INDICATE_UUID")
             defaults?.set("00002902-0000-1000-8000-00805f9b34fb", forKey: "CCC_DESCRIPTOR_UUID")
+            defaults?.set(0, forKey: "WORK_TIME")
             defaults?.synchronize()
         }
+        
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
+        }
+        
         resolve("OK")
        
     }

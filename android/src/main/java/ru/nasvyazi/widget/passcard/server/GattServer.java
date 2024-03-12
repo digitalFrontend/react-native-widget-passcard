@@ -27,11 +27,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.ParcelUuid;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import kotlin.text.Charsets;
 import ru.nasvyazi.widget.passcard.constants.AskingUserActions;
@@ -43,6 +48,7 @@ import ru.nasvyazi.widget.passcard.interfaces.IEnsureBluetoothCanBeUsed;
 import ru.nasvyazi.widget.passcard.interfaces.IHighlightCallback;
 import ru.nasvyazi.widget.passcard.logger.LogsSender;
 import ru.nasvyazi.widget.passcard.server.entity.GattServerParams;
+import ru.nasvyazi.widget.passcard.service.BackgroundServiceRunner;
 import ru.nasvyazi.widget.passcard.tools.helper.Helper;
 import ru.nasvyazi.widget.passcard.tools.helper.entity.CheckAllProvidersResult;
 
@@ -62,6 +68,7 @@ public class GattServer {
     private IHighlightCallback onHighlight = null;
     private Helper mHelper = null;
     private LogsSender logsSender = null;
+    private Date startTime =null;
 
 
     public GattServer(Context context, IAdvertiseStateChangeCallback callback, IHighlightCallback callback2) {
@@ -74,6 +81,8 @@ public class GattServer {
 
     public void start(GattServerParams params) {
         mParams = params;
+        this.startTime = Calendar.getInstance().getTime();
+        recursiveTimer(mContext);
         if (!isAdvertising) {
             prepareAndStartAdvertising();
         }
@@ -382,5 +391,37 @@ public class GattServer {
                 advertiseCallback.onStartFailure(errorCode);
             }
         });
+    }
+
+    private void recursiveTimer(Context context){
+        Handler handler = new Handler();
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                Date currentTime = Calendar.getInstance().getTime();
+                DateFormat dateFormat = new SimpleDateFormat("y-M-d H:m:s.S");
+                String log = "Time: " + dateFormat.format(currentTime);
+                logsSender.appendLog(log);
+
+                if (mParams.WORK_TIME != 0){
+                    long diffInMillies = currentTime.getTime() - startTime.getTime();
+                    if (TimeUnit.SECONDS.convert(diffInMillies, TimeUnit.MILLISECONDS) > mParams.WORK_TIME){
+                        String log2 = "Time suspended, close";
+                        logsSender.appendLog(log2);
+
+                        BackgroundServiceRunner.StopService(mContext);
+                    }
+                }
+
+                Log.i("PASSCARD_WIDGET", log);
+                if (isAdvertising){
+                    recursiveTimer(context);
+                }
+            }
+        };
+
+        // Post the Runnable with a delay
+        handler.postDelayed(runnable, 5000);
     }
 }

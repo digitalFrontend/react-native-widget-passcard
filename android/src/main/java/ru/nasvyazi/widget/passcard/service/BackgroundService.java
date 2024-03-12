@@ -30,7 +30,6 @@ import ru.nasvyazi.widget.passcard.interfaces.IAdvertiseStateChangeCallback;
 import ru.nasvyazi.widget.passcard.interfaces.IHighlightCallback;
 import ru.nasvyazi.widget.passcard.server.GattServer;
 import ru.nasvyazi.widget.passcard.server.entity.GattServerParams;
-import ru.nasvyazi.widget.passcard.tools.Test;
 import ru.nasvyazi.widget.passcard.widget.PasscardWidget;
 import ru.nasvyazi.widget.passcard.logger.LogsSender;
 
@@ -41,7 +40,6 @@ public class BackgroundService extends Service {
     private ServiceHandlerForHighlight serviceHandlerForHighlight;
 
     private GattServer gattServer;
-    private Test testServer;
 //    private LogsSender logsSender = null;
     private final class ServiceHandler extends Handler {
 
@@ -62,8 +60,9 @@ public class BackgroundService extends Service {
             serverParams.CHAR_FOR_WRITE_UUID = sharedPref.getString("CHAR_FOR_WRITE_UUID", null);
             serverParams.CHAR_FOR_INDICATE_UUID = sharedPref.getString("CHAR_FOR_INDICATE_UUID", null);
             serverParams.CCC_DESCRIPTOR_UUID = sharedPref.getString("CCC_DESCRIPTOR_UUID", null);
+            serverParams.WORK_TIME = sharedPref.getInt("WORK_TIME", 0);
             gattServer.start(serverParams);
-            testServer.start(mContext);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String CHANNEL_ID = "my_channel_01";
                 NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
@@ -147,7 +146,7 @@ public class BackgroundService extends Service {
                 handleGattServerHighlight(highlight);
             }
         });
-        testServer = new Test();
+
         serviceLooper = thread.getLooper();
         serviceHandler = new ServiceHandler(serviceLooper, this);
 
@@ -179,7 +178,6 @@ public class BackgroundService extends Service {
     @Override
     public void onDestroy() {
         gattServer.stop();
-        testServer.stop(this);
         Log.i("PASSCARD_WIDGET", "Service destroyed");
     }
 

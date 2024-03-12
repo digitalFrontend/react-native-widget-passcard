@@ -44,6 +44,9 @@ public class PasscardWidget extends AppWidgetProvider {
     public static String ACTION_AUTO_UPDATE_WIDGET = "ACTION_AUTO_UPDATE_WIDGET";
     public static String TOGGLE_BACKGROUND_SERVICE = "ToggleBackgroundService";
 
+
+    private int ACTUAL_INIT_VERSION = 2;
+
     public PasscardWidget() {
     }
 
@@ -112,7 +115,9 @@ public class PasscardWidget extends AppWidgetProvider {
             }
 
         }
+
         if(intent.getAction().equals(TOGGLE_BACKGROUND_SERVICE)) {
+
             if(BackgroundServiceRunner.isMyServiceRunning(context, BackgroundService.class)) {
                 BackgroundServiceRunner.StopService(context);
             } else {
@@ -125,18 +130,28 @@ public class PasscardWidget extends AppWidgetProvider {
                                 try {
                                     BackgroundServiceRunner.StartService(context);
                                 } catch (Exception e) {
+                                    Toast.makeText(context, e.getLocalizedMessage(),
+                                            Toast.LENGTH_LONG).show();
                                     Log.i("PASSCARD_WIDGET", e.getLocalizedMessage());
                                 }
                             } else {
+                                Toast.makeText(context, "ENABLE_BLUETOOTH error",
+                                        Toast.LENGTH_LONG).show();
                                 switchToBluetoothError(context);
                             }
                         } else {
+                            Toast.makeText(context, "LOCATION error",
+                                    Toast.LENGTH_LONG).show();
                             switchToPermissionError(context);
                         }
                     } else {
+                        Toast.makeText(context, "BLUETOOTH_ADVERTISE error",
+                                Toast.LENGTH_LONG).show();
                         switchToPermissionError(context);
                     }
                 } else {
+                    Toast.makeText(context, "BLUETOOTH_CONNECT error",
+                            Toast.LENGTH_LONG).show();
                     switchToPermissionError(context);
                 }
             }
@@ -171,7 +186,7 @@ public class PasscardWidget extends AppWidgetProvider {
         try {
             SharedPreferences sharedPref = context.getSharedPreferences("PASSCARD_storage", Context.MODE_PRIVATE);
             int state = sharedPref.getInt("widgetState", WIDGET_STATES.NOT_INITIALIZED);
-            boolean isInited = sharedPref.getBoolean("isInited", false);
+            boolean isInited = sharedPref.getInt("initVersion", 0) == ACTUAL_INIT_VERSION;
 
             if (!isInited) {
                 result.drawableId = R.drawable.passcard_widget_not_inited;

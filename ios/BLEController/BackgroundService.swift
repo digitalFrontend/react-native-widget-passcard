@@ -8,6 +8,7 @@ import OSLog
 //    
     static let logsSender : LogsSender = LogsSender()
     var BLEC: BLEController? = nil
+    var startTime: Date? = nil
 //    public static let shared = BackgroundService()
     
    public override init() {}
@@ -21,27 +22,60 @@ import OSLog
     }
     
     public func start() {
-        print("start1")
-        print(self.BLEC != nil ? "YES BLEC" : "NO BLEC")
         
         if (self.BLEC == nil){
             self.initBLE()
         }
         
-        print("start12")
         self.BLEC?.start()
-        print("start2")
         let defaults = UserDefaults(suiteName: DATA_GROUP)
         
-            print("start3")
         defaults?.set(WidgetStates.RUNNING.rawValue, forKey: "widgetState")
+        
         if #available(iOS 14.0, *) {
             
-                print("start4")
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
             
-                print("start5")
         }
+        
+        let workTime = defaults?.integer(forKey: "WORK_TIME") ?? 0
+        
+        startTime = Date()
+        
+        Task {
+            await startTimer(workTime: workTime)
+        }
+    }
+    
+    public func startTimer(workTime: Int) async {
+        do {
+            try await Task.sleep(nanoseconds: UInt64(5 * Double(NSEC_PER_SEC)))
+            
+            
+        }catch{
+            print(error.localizedDescription)
+        }
+        
+        let currentTime = Date()
+        
+        let log = "Time: "+currentTime.description
+        BackgroundService.logsSender.appendLog(log);
+        
+        if (workTime != 0){
+            let diff = currentTime - startTime!
+            
+            if (Int(diff.rounded()) > workTime){
+                let log2 = "Time suspended, close"
+                BackgroundService.logsSender.appendLog(log2);
+                
+                stop()
+            }
+        }
+        
+        if (self.BLEC != nil &&  self.BLEC!.isAdvertising()){
+            await startTimer(workTime: workTime)
+        }
+        
     }
 
     public func stop() {
@@ -58,6 +92,14 @@ import OSLog
         let settingsUrl =  URL(string: UIApplication.openSettingsURLString)!
         UIApplication.shared.open(settingsUrl, options: [:], completionHandler: nil)
     }
+}
+
+extension Date {
+
+    static func - (lhs: Date, rhs: Date) -> TimeInterval {
+        return lhs.timeIntervalSinceReferenceDate - rhs.timeIntervalSinceReferenceDate
+    }
+
 }
 
 //public let BGServiceInstace = BackgroundService()

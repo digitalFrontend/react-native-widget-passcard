@@ -73,6 +73,7 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
   private final String sharedPreferencesName = "PASSCARD_storage";
   private Helper mHelper;
   private LogsBroadcastReceiver logsReceiver;
+  private int ACTUAL_INIT_VERSION = 2;
 
 
   @SuppressLint("RestrictedApi")
@@ -112,9 +113,10 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
     editor.putString("CHAR_FOR_WRITE_UUID", params.getString("CHAR_FOR_WRITE_UUID"));
     editor.putString("CHAR_FOR_INDICATE_UUID", params.getString("CHAR_FOR_INDICATE_UUID"));
     editor.putString("CCC_DESCRIPTOR_UUID", params.getString("CCC_DESCRIPTOR_UUID"));
+    editor.putInt("WORK_TIME", params.getInt("WORK_TIME"));
 
-    if (!sharedPreferences.getBoolean("isInited", false)){
-      editor.putBoolean("isInited", true);
+    if (sharedPreferences.getInt("initVersion", 0) < ACTUAL_INIT_VERSION){
+      editor.putInt("initVersion", ACTUAL_INIT_VERSION);
       editor.putInt("widgetState", WIDGET_STATES.WAITING_START);
     }
     editor.commit();
@@ -132,6 +134,7 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
     params.putString("CHAR_FOR_WRITE_UUID", sharedPreferences.getString("CHAR_FOR_WRITE_UUID", null));
     params.putString("CHAR_FOR_INDICATE_UUID", sharedPreferences.getString("CHAR_FOR_INDICATE_UUID", null));
     params.putString("CCC_DESCRIPTOR_UUID", sharedPreferences.getString("CCC_DESCRIPTOR_UUID", null));
+    params.putInt("WORK_TIME", sharedPreferences.getInt("WORK_TIME", 0));
 
     promise.resolve(params);
   }
@@ -197,16 +200,17 @@ public class WidgetSharePasscardDataModule extends ReactContextBaseJavaModule  {
   private void initData() {
     SharedPreferences sharedPreferences = getReactApplicationContext().getSharedPreferences(sharedPreferencesName,MODE_PRIVATE);
     SharedPreferences.Editor editor = sharedPreferences.edit();
-    if (!sharedPreferences.getBoolean("isInited", false)){
-      editor.putBoolean("isInited", true);
+    if (sharedPreferences.getInt("initVersion", 0) < ACTUAL_INIT_VERSION){
+      editor.putInt("initVersion", ACTUAL_INIT_VERSION);
       editor.putInt("widgetState", WIDGET_STATES.WAITING_START);
       editor.putInt("widgetHighlight", WIDGET_HIGHLIGHTS.NOTHING);
-      editor.putString("USER_UUID", "");
+      editor.putString("USER_UUID", sharedPreferences.getBoolean("isInited", false) ? sharedPreferences.getString("USER_UUID", "") : "");
       editor.putString("SERVICE_UUID", "25AE1441-05D3-4C5B-8281-93D4E07420CF");
       editor.putString("CHAR_FOR_READ_UUID", "25AE1442-05D3-4C5B-8281-93D4E07420CF");
       editor.putString("CHAR_FOR_WRITE_UUID", "25AE1443-05D3-4C5B-8281-93D4E07420CF");
       editor.putString("CHAR_FOR_INDICATE_UUID", "25AE1444-05D3-4C5B-8281-93D4E07420CF");
       editor.putString("CCC_DESCRIPTOR_UUID", "00002902-0000-1000-8000-00805f9b34fb");
+      editor.putInt("WORK_TIME", 0);
       editor.commit();
     }
 
