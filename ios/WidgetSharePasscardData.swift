@@ -5,11 +5,12 @@ import React
 @objc(WidgetSharePasscardData)
 class WidgetSharePasscardData: NSObject {
     
-    let BGS: BackgroundService = BackgroundService()
+    var BGS: BackgroundService? = nil
     let ACTUAL_INIT_VERSION = 2
     
     
     let logsSender: LogsSender = LogsSender()
+    
 //    let BGService: BackgroundService = getBGServiceInstance()
     @objc
     func sendCustomEvent(
@@ -24,14 +25,7 @@ class WidgetSharePasscardData: NSObject {
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
-        let defaults = UserDefaults(suiteName: DATA_GROUP)
-        self.BGS.start()
-        defaults?.set(WidgetHighlight.ACTIVE_BY_APP.rawValue, forKey: "widgetHighlight")
-        defaults?.synchronize()
-        if #available(iOS 14.0, *) {
-            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
-        }
-        
+        self.BGS?.start()
         resolve(nil)
     }
     
@@ -40,13 +34,7 @@ class WidgetSharePasscardData: NSObject {
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     ) {
-        let defaults = UserDefaults(suiteName: DATA_GROUP)
-        self.BGS.stop()
-        defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
-        defaults?.synchronize()
-        if #available(iOS 14.0, *) {
-            WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
-        }
+        self.BGS?.stop()
         resolve(nil)
     }
     
@@ -64,7 +52,7 @@ class WidgetSharePasscardData: NSObject {
             defaults?.set(params["CHAR_FOR_WRITE_UUID"] as? String, forKey: "CHAR_FOR_WRITE_UUID")
             defaults?.set(params["CHAR_FOR_INDICATE_UUID"] as? String, forKey: "CHAR_FOR_INDICATE_UUID")
             defaults?.set(params["WORK_TIME"] as? Int, forKey: "WORK_TIME")
-        
+            defaults?.set(true, forKey: "paramsWasUpdate")
 //          CCC_DESCRIPTOR_UUID - в ios примере не использовался по какойто причине
 //          Но дверь открылась и без него
             defaults?.set(params["CCC_DESCRIPTOR_UUID"] as? String, forKey: "CCC_DESCRIPTOR_UUID")
@@ -76,12 +64,9 @@ class WidgetSharePasscardData: NSObject {
             defaults?.set(WidgetHighlight.NOTHING.rawValue, forKey: "widgetHighlight")
         }
         
-//        defaults?.set(WidgetActions.LET_INIT.rawValue, forKey: "widgetActions")
         
         defaults?.synchronize()
-        
-        self.BGS.initBLE()
-        
+
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
         }
@@ -127,6 +112,10 @@ class WidgetSharePasscardData: NSObject {
             defaults?.synchronize()
         }
         
+        if(self.BGS == nil) {
+            self.BGS = BackgroundService(isNeedWidgetRefresh:false)
+        }
+
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadTimelines(ofKind: "WidgetTeleopti")
         }
@@ -145,12 +134,13 @@ class WidgetSharePasscardData: NSObject {
     }
     
     @objc
-    func getWidgetHighlight(
+    func getAppBLEState(
         _ resolve: @escaping RCTPromiseResolveBlock,
         withRejecter reject:  @escaping RCTPromiseRejectBlock
     )-> Void {
         let defaults = UserDefaults(suiteName: DATA_GROUP)
-        resolve(["widgetHighlight": defaults?.string(forKey: "widgetHighlight")])
+        resolve(["appBleState": defaults?.string(forKey: "appBleState")])
     }
+    
 }
 

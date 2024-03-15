@@ -12,9 +12,7 @@ let PasscardWidget = {
     start: async () => {},
     stop: async () => {},
     addListener: (callback) => {},
-    sendCustomEvent: async () => {},
-    createBLE: async () => {},
-    getWidgetHighlight: async () => {},
+    getAppBLEState: async () => {},
 };
 
 PasscardWidget.setParams = async (params) => {
@@ -48,9 +46,9 @@ PasscardWidget.getWidgetState = async () => {
         return await Widget.getWidgetState();
     }
 };
-PasscardWidget.getWidgetHighlight = async () => {
+PasscardWidget.getAppBLEState = async () => {
     if (Platform.OS == "ios") {
-        return await Widget.getWidgetHighlight();
+        return await Widget.getAppBLEState();
     } else {
         return 
     }
@@ -73,34 +71,21 @@ PasscardWidget.stop = async () => {
     }
 };
 
+let eventEmitter 
 PasscardWidget.addListener = callback => {
-
-    let eventEmitter 
-    if (Platform.OS == 'ios') {
-        eventEmitter = new NativeEventEmitter(NativeModules.WidgetPasscardEventEmitter);
-    } else {
-        eventEmitter = new NativeEventEmitter(NativeModules.WidgetSharePasscardData);
+    if(!eventEmitter){
+      if (Platform.OS == 'ios') {
+          eventEmitter = new NativeEventEmitter(NativeModules.WidgetPasscardEventEmitter);
+      } else {
+          eventEmitter = new NativeEventEmitter(NativeModules.WidgetSharePasscardData);
+      }
     }
+   
     let eventListener = eventEmitter.addListener('LOGS_RECEIVER', event => {
-        console.log('LOGS_RECEIVER - ', event);
         callback(event)
     });
+
     return eventListener; //eventEmitter
-}
-
-
-PasscardWidget.sendCustomEvent = () => {
-    if(Platform.OS == 'ios'){
-        console.log('send EV');
-        return Widget.sendCustomEvent()
-    }
-}
-
-PasscardWidget.createBLE = () => {
-    if(Platform.OS == 'ios'){
-        console.log('send EV');
-        return Widget.sendCustomEvent()
-    }
 }
 
 export default PasscardWidget;

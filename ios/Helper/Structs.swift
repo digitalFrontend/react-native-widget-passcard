@@ -23,16 +23,11 @@ public enum WidgetHighlight: String {
     case NOTHING = "0"
     case SUCCESS = "1"
     case FAIL = "2"
-    case ACTIVE_BY_APP = "3"
 }
 
-public enum WidgetActions: String {
-    case NONE = "0"
-    case LET_INIT = "1"
-    case LET_START = "2"
-    case LET_STOP = "3"
-   
-    
-}
+public enum AppBleStates: String {
+    case WAITING_START = "0"
+    case RUNNING = "1"
 
+}
 
