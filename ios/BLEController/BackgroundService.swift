@@ -1,32 +1,29 @@
 import Foundation
-import WidgetKit
 import OSLog
 
 @objc public class BackgroundService: NSObject {
     
-//    public static var service: BackgroundService! = BackgroundService()
+
 //    
     static let logsSender : LogsSender = LogsSender()
     var BLEC: BLEServer
+    
     var startTime: Date? = nil
     var isNeedWidgetRefresh: Bool?
-//    public static let shared = BackgroundService()
+
     
    public init(isNeedWidgetRefresh: Bool) {
         self.isNeedWidgetRefresh = isNeedWidgetRefresh
-        self.BLEC = BLEServer(isNeedWidgetRefresh: isNeedWidgetRefresh)
+        self.BLEC = BLEServer()
     }
     
-//    public func initBLE() {
-//        print("BackgroundService ----> initBLE")
-//        self.BLEC?.createBLE()
-//        BackgroundService.logsSender.appendLog("BackgroundService ----> initBLE")
-//    }
-//    
+    deinit {
+        if (self.BLEC.isAdvertising()) {
+            self.BLEC.stop()
+        }
+    }
+      
     public func start() {
-//        if(self.BLEC.isAdvertising()){
-//            self.BLEC.stop()
-//        }
         
         self.BLEC.start()
         let defaults = UserDefaults(suiteName: DATA_GROUP)
@@ -65,7 +62,7 @@ import OSLog
             }
         }
         
-        if (self.BLEC != nil &&  self.BLEC.isAdvertising()){
+        if (self.BLEC.isAdvertising()){
             await startTimer(workTime: workTime)
         }
         
@@ -73,7 +70,6 @@ import OSLog
 
     public func stop() {
         self.BLEC.stop()
-        let defaults = UserDefaults(suiteName: DATA_GROUP)
     }
 }
 

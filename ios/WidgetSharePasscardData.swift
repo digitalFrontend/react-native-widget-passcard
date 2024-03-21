@@ -10,16 +10,10 @@ class WidgetSharePasscardData: NSObject {
     
     
     let logsSender: LogsSender = LogsSender()
-    
-//    let BGService: BackgroundService = getBGServiceInstance()
-    @objc
-    func sendCustomEvent(
-        _ resolve: @escaping RCTPromiseResolveBlock,
-        withRejecter reject:  @escaping RCTPromiseRejectBlock
-    ) {
-//        self.BGS.initBLE()
+    override init() {
+        super.init()
     }
-    
+
     @objc
     func start(
         _ resolve: @escaping RCTPromiseResolveBlock,
@@ -52,7 +46,8 @@ class WidgetSharePasscardData: NSObject {
             defaults?.set(params["CHAR_FOR_WRITE_UUID"] as? String, forKey: "CHAR_FOR_WRITE_UUID")
             defaults?.set(params["CHAR_FOR_INDICATE_UUID"] as? String, forKey: "CHAR_FOR_INDICATE_UUID")
             defaults?.set(params["WORK_TIME"] as? Int, forKey: "WORK_TIME")
-            defaults?.set(true, forKey: "paramsWasUpdate")
+            defaults?.set(true, forKey: "paramsWasUpdate_app")
+            defaults?.set(true, forKey: "paramsWasUpdate_widget")
 //          CCC_DESCRIPTOR_UUID - в ios примере не использовался по какойто причине
 //          Но дверь открылась и без него
             defaults?.set(params["CCC_DESCRIPTOR_UUID"] as? String, forKey: "CCC_DESCRIPTOR_UUID")
@@ -113,6 +108,7 @@ class WidgetSharePasscardData: NSObject {
         }
         
         if(self.BGS == nil) {
+            logsSender.appendLog("BGS - init")
             self.BGS = BackgroundService(isNeedWidgetRefresh:false)
         }
 
